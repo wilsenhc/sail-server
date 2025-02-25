@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 Route::redirect('/', 'https://laravel.com/docs', 302);
@@ -43,7 +43,7 @@ Route::get('/{name}', function (Request $request, $name) {
                 'with.*' => [
                     'required',
                     'string',
-                    count($with) === 1 && in_array('none', $with) ? Rule::in(['none']) : Rule::in($availableServices)
+                    count($with) === 1 && in_array('none', $with) ? Rule::in(['none']) : Rule::in($availableServices),
                 ],
             ]
         );
