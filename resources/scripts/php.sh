@@ -11,10 +11,10 @@ docker run --rm \
     --pull=always \
     -v "$(pwd)":/opt \
     -w /opt \
-    laravelsail/php{{ php }}-composer:latest \
-    bash -c "laravel new {{ name }} --no-interaction && cd {{ name }} && php ./artisan sail:install --with={{ with }} {{ devcontainer }}"
+    serversideup/php:8.4-cli \
+    bash -c "composer global require laravel/installer && php ./composer/vendor/bin/laravel new test --no-interaction && cd test && php ./artisan sail:install --with={{ with }} {{ devcontainer }}"
 
-cd {{ name }}
+cd test
 
 # Allow build with no additional services..
 if [ "{{ services }}" == "none" ]; then
@@ -42,11 +42,11 @@ fi
 
 if $SUDO -n true 2>/dev/null; then
     $SUDO chown -R $USER: .
-    echo -e "${BOLD}Get started with:${NC} cd {{ name }} && ./vendor/bin/sail up"
+    echo -e "${BOLD}Get started with:${NC} cd test && ./vendor/bin/sail up"
 else
     echo -e "${BOLD}Please provide your password so we can make some final adjustments to your application's permissions.${NC}"
     echo ""
     $SUDO chown -R $USER: .
     echo ""
-    echo -e "${BOLD}Thank you! We hope you build something incredible. Dive in with:${NC} cd {{ name }} && ./vendor/bin/sail up"
+    echo -e "${BOLD}Thank you! We hope you build something incredible. Dive in with:${NC} cd test && ./vendor/bin/sail up"
 fi
