@@ -33,6 +33,7 @@ Route::get('/{name}', function (Request $request, $name) {
     ];
 
     $availableFrontends = [
+        'none',
         'react',
         'vue',
         'livewire',
@@ -52,7 +53,7 @@ Route::get('/{name}', function (Request $request, $name) {
 
     $with = array_unique(explode(',', $request->query('with', 'mysql,redis,meilisearch,mailpit,selenium')));
 
-    $frontend = $request->query('frontend', 'livewire');
+    $frontend = $request->query('frontend', 'none');
     $auth = $request->query('auth', null);
     $tests = $request->query('tests', 'pest');
 
@@ -97,7 +98,7 @@ Route::get('/{name}', function (Request $request, $name) {
         }
 
         if (array_key_exists('frontend', $errors)) {
-            return response('Invalid frontend. Please provide one supported frontend ('.implode(', ', $availableFrontends).') or leave it empty (it will use livewire).', 400);
+            return response('Invalid frontend. Please provide one supported frontend ('.implode(', ', $availableFrontends).') or leave it empty.', 400);
         }
 
         if (array_key_exists('auth', $errors)) {
@@ -116,7 +117,7 @@ Route::get('/{name}', function (Request $request, $name) {
     $devcontainer = $request->has('devcontainer') ? '--devcontainer' : '';
 
     //Prepend -- to frontend, auth and test
-    $frontend = ($frontend) ? "--{$frontend}" : null;
+    $frontend = ($frontend && $frontend != 'none') ? "--{$frontend} " : null;
     $testFramework = ($tests) ? "--{$tests}" : null;
 
     /*
@@ -127,7 +128,7 @@ Route::get('/{name}', function (Request $request, $name) {
     $auth = ($auth) ? "--{$auth} " : null;
 
     $script = str_replace(
-        ['{{ php }}', '{{ name }}', '{{ frontend }}', '{{ authProvider }} ', '{{ testFramework }}', '{{ with }}', '{{ devcontainer }}', '{{ services }}'],
+        ['{{ php }}', '{{ name }}', '{{ frontend }} ', '{{ authProvider }} ', '{{ testFramework }}', '{{ with }}', '{{ devcontainer }}', '{{ services }}'],
         [$php, $name, "$frontend", "$auth", "$testFramework", $with, $devcontainer, $services],
         file_get_contents(resource_path('scripts/php.sh'))
     );

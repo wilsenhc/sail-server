@@ -107,6 +107,7 @@
         'soketi',
     ])
     const frontend = ref([
+        'none',
         'livewire',
         'livewire-class-components',
         'vue',
