@@ -8,12 +8,20 @@ use Tests\TestCase;
 
 class Laravel12FrontendTest extends TestCase
 {
-    public function test_it_accepts_no_frontend_and_uses_livewire()
+    public function test_it_accepts_no_frontend_and_uses_no_frontend()
     {
         $response = $this->get('/example-app');
 
         $response->assertStatus(200);
-        $response->assertSee('laravel new example-app --livewire --pest --no-interaction', false);
+        $response->assertSee('laravel new example-app --pest --no-interaction', false);
+    }
+
+    public function test_it_accepts_frontend_none_and_uses_no_frontend()
+    {
+        $response = $this->get('/example-app?frontend=none');
+
+        $response->assertStatus(200);
+        $response->assertSee('laravel new example-app --pest --no-interaction', false);
     }
 
     public function test_it_accepts_frontend_livewire()
@@ -53,6 +61,6 @@ class Laravel12FrontendTest extends TestCase
         $response = $this->get('/example-app?frontend=invalid');
 
         $response->assertStatus(400);
-        $response->assertSee('Invalid frontend. Please provide one supported frontend (react, vue, livewire, livewire-class-components) or leave it empty (it will use livewire).');
+        $response->assertSee('Invalid frontend. Please provide one supported frontend (none, react, vue, livewire, livewire-class-components) or leave it empty.');
     }
 }

@@ -13,7 +13,7 @@ class Laravel12TestFrameworkTest extends TestCase
         $response = $this->get('/example-app');
 
         $response->assertStatus(200);
-        $response->assertSee('laravel new example-app --livewire --pest --no-interaction', false);
+        $response->assertSee('laravel new example-app --pest --no-interaction', false);
     }
 
     public function test_it_accepts_test_pest()
@@ -21,7 +21,7 @@ class Laravel12TestFrameworkTest extends TestCase
         $response = $this->get('/example-app?tests=pest');
 
         $response->assertStatus(200);
-        $response->assertSee('laravel new example-app --livewire --pest --no-interaction', false);
+        $response->assertSee('laravel new example-app --pest --no-interaction', false);
     }
 
     public function test_it_accepts_test_phpunit()
@@ -29,7 +29,7 @@ class Laravel12TestFrameworkTest extends TestCase
         $response = $this->get('/example-app?tests=phpunit');
 
         $response->assertStatus(200);
-        $response->assertSee('laravel new example-app --livewire --phpunit --no-interaction', false);
+        $response->assertSee('laravel new example-app --phpunit --no-interaction', false);
     }
     
     public function test_it_does_not_accept_invalid_test()
