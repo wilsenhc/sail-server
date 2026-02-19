@@ -42,6 +42,17 @@
                     <v-col cols='12' sm='6' md='4'>
                         <v-select
                             chips
+                            label="JavaScript Runtime"
+                            :items="javascriptRuntime"
+                            v-model='selectedJavascriptRuntime'
+                            variant="filled"
+                            density="compact"
+                        />
+                    </v-col>
+
+                    <v-col cols='12' sm='6' md='4'>
+                        <v-select
+                            chips
                             label="TestingFramework"
                             :items="testingFramework"
                             v-model='selectedTesting'
@@ -58,6 +69,15 @@
                             v-model='selectedAuth'
                             variant="filled"
                             density="compact"
+                        />
+                    </v-col>
+
+                    <v-col cols='12' sm='6' md='4' class="d-flex align-center">
+                        <v-switch
+                            label="Install Laravel Boost"
+                            v-model='withBoost'
+                            density="compact"
+                            hide-details
                         />
                     </v-col>
                 </v-row>
@@ -86,8 +106,10 @@
         'selenium'
     ])
     const selectedFrontend = ref('livewire')
+    const selectedJavascriptRuntime = ref('npm')
     const selectedAuth = ref('laravel')
     const selectedTesting = ref('pest')
+    const withBoost = ref(false)
 
     //Select Boxes items
     const services = ref([
@@ -112,8 +134,16 @@
         'livewire-class-components',
         'vue',
         'react',
+        'svelte',
+    ])
+    const javascriptRuntime = ref([
+        'npm',
+        'pnpm',
+        'bun',
+        'yarn',
     ])
     const authProvider = ref([
+        'no-authentication',
         'laravel',
         'workos',
     ])
@@ -127,6 +157,7 @@
         const url = window.location.href+appName.value
         const services = '?with='+selectedServices.value.join(',')
         const frontend = '&frontend='+selectedFrontend.value
+        const javascriptRuntime = '&javascript='+selectedJavascriptRuntime.value
         const testing = '&testing='+selectedTesting.value
         let auth = ''
 
@@ -134,7 +165,9 @@
             auth = '&auth='+selectedAuth.value
         }
 
-        const command = "curl -s '"+url+services+frontend+testing+auth+"' | bash"
+        const boost = withBoost.value ? '&boost' : ''
+
+        const command = "curl -s '"+url+services+frontend+javascriptRuntime+testing+auth+boost+"' | bash"
 
         return command
     })
