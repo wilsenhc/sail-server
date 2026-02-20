@@ -31,11 +31,22 @@
                     <v-col cols='12' sm='6' md='4'>
                         <v-select
                             chips
-                            label="Frontend"
-                            :items="frontend"
-                            v-model='selectedFrontend'
+                            label="Starter Kit"
+                            :items="starterKit"
+                            v-model='selectedStarterKit'
                             variant="filled"
                             density="compact"
+                        />
+                    </v-col>
+
+                    <v-col v-if="selectedStarterKit === 'custom'" cols='12' sm='6' md='4'>
+                        <v-text-field
+                            label="Custom Starter Kit URL"
+                            :error-messages="customStarterKitUrlError"
+                            v-model='customStarterKitUrl'
+                            variant="filled"
+                            density="compact"
+                            @blur="validateCustomUrl"
                         />
                     </v-col>
 
@@ -61,7 +72,7 @@
                         />
                     </v-col>
 
-                    <v-col cols='12' sm='6' md='4'>
+                    <v-col v-if="selectedStarterKit !== 'custom'" cols='12' sm='6' md='4' >
                         <v-select
                             chips
                             label="Auth Provider"
@@ -105,7 +116,9 @@
         'mailpit',
         'selenium'
     ])
-    const selectedFrontend = ref('livewire')
+    const selectedStarterKit = ref('livewire')
+    const customStarterKitUrl = ref('')
+    const customStarterKitUrlError = ref('')
     const selectedJavascriptRuntime = ref('npm')
     const selectedAuth = ref('laravel')
     const selectedTesting = ref('pest')
@@ -118,23 +131,25 @@
         'mariadb',
         'mongodb',
         'redis',
-        'rabbitmq',
         'valkey',
         'memcached',
         'meilisearch',
         'typesense',
         'minio',
+        'rustfs',
         'mailpit',
+        'rabbitmq',
         'selenium',
         'soketi',
     ])
-    const frontend = ref([
+    const starterKit = ref([
         'none',
         'livewire',
         'livewire-class-components',
         'vue',
         'react',
         'svelte',
+        'custom',
     ])
     const javascriptRuntime = ref([
         'npm',
@@ -153,21 +168,46 @@
     ])
 
 
+    const validateCustomUrl = () => {
+        if (selectedStarterKit.value === 'custom') {
+            if (!customStarterKitUrl.value) {
+                customStarterKitUrlError.value = 'URL is required for custom starter kit'
+                return false
+            }
+
+            try {
+                new URL(customStarterKitUrl.value)
+                customStarterKitUrlError.value = ''
+                return true
+            } catch (error) {
+                customStarterKitUrlError.value = 'Please enter a valid URL'
+                return false
+            }
+        }
+        customStarterKitUrlError.value = ''
+        return true
+    }
+
     const command = computed(() => {
         const url = window.location.href+appName.value
         const services = '?with='+selectedServices.value.join(',')
-        const frontend = '&frontend='+selectedFrontend.value
+        const frontend = '&frontend='+selectedStarterKit.value
         const javascriptRuntime = '&javascript='+selectedJavascriptRuntime.value
         const testing = '&testing='+selectedTesting.value
         let auth = ''
+        let using = ''
 
-        if(selectedAuth.value !== 'laravel') {
+        if(selectedStarterKit.value !== 'custom' && selectedAuth.value !== 'laravel') {
             auth = '&auth='+selectedAuth.value
+        }
+
+        if(selectedStarterKit.value === 'custom' && customStarterKitUrl.value) {
+            using = '&using='+encodeURIComponent(customStarterKitUrl.value)
         }
 
         const boost = withBoost.value ? '&boost' : ''
 
-        const command = "curl -s '"+url+services+frontend+javascriptRuntime+testing+auth+boost+"' | bash"
+        const command = "curl -s '"+url+services+frontend+javascriptRuntime+testing+auth+boost+using+"' | bash"
 
         return command
     })

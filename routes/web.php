@@ -21,13 +21,14 @@ Route::get('/{name}', function (Request $request, $name) {
         'mariadb',
         'mongodb',
         'redis',
-        'rabbitmq',
         'valkey',
         'memcached',
         'meilisearch',
         'typesense',
         'minio',
+        'rustfs',
         'mailpit',
+        'rabbitmq',
         'selenium',
         'soketi',
     ];
@@ -39,6 +40,7 @@ Route::get('/{name}', function (Request $request, $name) {
         'livewire',
         'livewire-class-components',
         'svelte',
+        'custom',
     ];
 
     $availableJavascriptRuntimes = [
@@ -66,6 +68,7 @@ Route::get('/{name}', function (Request $request, $name) {
     $auth = $request->query('auth', null);
     $tests = $request->query('tests', 'pest');
     $javascript = $request->query('javascript', null);
+    $using = $request->query('using', null);
 
     try {
         Validator::validate(
@@ -77,6 +80,7 @@ Route::get('/{name}', function (Request $request, $name) {
                 'auth' => $auth,
                 'tests' => $tests,
                 'javascript' => $javascript,
+                'using' => $using,
             ],
             [
                 'name' => 'string|alpha_dash',
@@ -92,6 +96,7 @@ Route::get('/{name}', function (Request $request, $name) {
                 'auth' => ['nullable', 'string', Rule::in($availableAuthentication)],
                 'tests' => ['string', Rule::in($availableTestFrameworks)],
                 'javascript' => ['nullable', 'string', Rule::in($availableJavascriptRuntimes)],
+                'using' => $frontend === 'custom' ? ['required', 'string', 'url'] : ['nullable', 'string', 'url'],
             ]
         );
     } catch (ValidationException $e) {
@@ -110,7 +115,7 @@ Route::get('/{name}', function (Request $request, $name) {
         }
 
         if (array_key_exists('frontend', $errors)) {
-            return response('Invalid frontend. Please provide one supported frontend ('.implode(', ', $availableFrontends).') or leave it empty.', 400);
+            return response('Invalid starter kit. Please provide one supported starter kit ('.implode(', ', $availableFrontends).') or leave it empty.', 400);
         }
 
         if (array_key_exists('auth', $errors)) {
@@ -124,6 +129,13 @@ Route::get('/{name}', function (Request $request, $name) {
         if (array_key_exists('javascript', $errors)) {
             return response('Invalid JavaScript runtime. Please provide one supported runtime ('.implode(', ', $availableJavascriptRuntimes).') or leave it empty.', 400);
         }
+
+        if (array_key_exists('using', $errors)) {
+            if ($frontend === 'custom') {
+                return response('Invalid custom starter kit URL. A valid URL is required when using a custom starter kit.', 400);
+            }
+            return response('Invalid custom starter kit URL. Please provide a valid URL.', 400);
+        }
     }
 
     $services = implode(' ', $with);
@@ -135,7 +147,7 @@ Route::get('/{name}', function (Request $request, $name) {
     $boost = $request->has('boost') ? '--boost ' : '';
 
     //Prepend -- to frontend, auth, test, and javascript runtime
-    $frontend = ($frontend && $frontend != 'none') ? "--{$frontend} " : null;
+    $frontend = ($frontend && $frontend != 'none' && $frontend != 'custom') ? "--{$frontend} " : null;
     $testFramework = ($tests) ? "--{$tests}" : null;
     $javascriptRuntime = ($javascript) ? "--{$javascript} " : null;
 
@@ -145,10 +157,11 @@ Route::get('/{name}', function (Request $request, $name) {
      * It will have two spaces after --livewire
      */
     $auth = ($auth) ? "--{$auth} " : null;
+    $using = ($using) ? "--using=\"{$using}\" " : null;
 
     $script = str_replace(
-        ['{{ php }}', '{{ name }}', '{{ frontend }} ', '{{ authProvider }} ', '{{ testFramework }}', '{{ boost }}', '{{ javascriptRuntime }}', '{{ with }}', '{{ devcontainer }}', '{{ services }}'],
-        [$php, $name, "$frontend", "$auth", "$testFramework", "$boost", "$javascriptRuntime", $with, $devcontainer, $services],
+        ['{{ php }}', '{{ name }}', '{{ frontend }} ', '{{ authProvider }} ', '{{ testFramework }}', '{{ boost }}', '{{ javascriptRuntime }}', '{{ using }}', '{{ with }}', '{{ devcontainer }}', '{{ services }}'],
+        [$php, $name, "$frontend", "$auth", "$testFramework", "$boost", "$javascriptRuntime", "$using", $with, $devcontainer, $services],
         file_get_contents(resource_path('scripts/php.sh'))
     );
 
